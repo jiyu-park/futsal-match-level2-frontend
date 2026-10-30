@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { api, ApiError, Stats } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import { dangerBtn, ErrorBox, Field, inputClass } from "@/components/ui";
 
 export default function StatsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
   const [admin, setAdmin] = useState("");
@@ -58,13 +61,17 @@ export default function StatsPage() {
 
       <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="font-bold">가상 데이터 다시 채우기</h2>
-        <p className="text-sm text-slate-600">모집글과 신청을 모두 지우고 처음 상태의 가상 데이터로 되돌려요. 경기장은 그대로 둡니다.</p>
+        <p className="text-sm text-slate-600">모집글·신청·후기를 모두 지우고 처음 상태의 가상 데이터로 되돌려요. 경기장과 가입한 계정은 그대로 둡니다.</p>
         {message && (message.ok
           ? <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">{message.text}</div>
           : <ErrorBox>{message.text}</ErrorBox>)}
-        <Field label="관리자 비밀번호">
-          <input type="password" className={inputClass} value={admin} onChange={(e) => setAdmin(e.target.value)} />
-        </Field>
+        {isAdmin ? (
+          <p className="text-sm text-emerald-800">관리자 계정으로 로그인했어요.</p>
+        ) : (
+          <Field label="관리자 비밀번호" hint="관리자 계정으로 로그인하면 입력하지 않아도 돼요.">
+            <input type="password" className={inputClass} value={admin} onChange={(e) => setAdmin(e.target.value)} />
+          </Field>
+        )}
         <button className={dangerBtn} disabled={busy} onClick={reset}>{busy ? "채우는 중..." : "가상 데이터 다시 채우기"}</button>
       </section>
     </div>

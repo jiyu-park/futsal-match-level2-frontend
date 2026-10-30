@@ -30,11 +30,78 @@ export type Post = {
   applied_count: number;
   remaining: number;
   is_ended: boolean;
+  owner_id: number | null;
+  owner_nickname: string | null;
+};
+
+export type User = { id: number; email: string; nickname: string; role: "user" | "admin" };
+
+export type Participant = { user_id: number; nickname: string; role: "host" | "player"; attendance: string };
+
+export type Review = {
+  id: number;
+  reviewer_id: number;
+  reviewer_nickname: string;
+  target_id: number;
+  target_nickname: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
+export type Profile = {
+  id: number;
+  nickname: string;
+  joined_at: string;
+  stats: {
+    attended_count: number;
+    no_show_count: number;
+    attendance_rate: number | null;
+    hosted_count: number;
+    review_count: number;
+    manner_average: number | null;
+  };
+  recent_reviews: { rating: number; comment: string | null; created_at: string; reviewer_nickname: string; post_title: string }[];
+};
+
+export type HistoryItem = {
+  post_id: number;
+  title: string;
+  play_date: string;
+  play_time: string;
+  stadium_name: string;
+  is_ended: boolean;
+  attendance?: string;
+  application_id?: number;
+  applied_count?: number;
+};
+
+export const ATTENDANCE_LABEL: Record<string, string> = {
+  pending: "참석 확인 전",
+  attended: "참석",
+  no_show: "불참(노쇼)",
+};
+
+const TOKEN_KEY = "futsal_token";
+export const getToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+export const setToken = (token: string | null) => {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {}
 };
 
 export type Application = {
   id: number;
+  user_id: number | null;
   applicant_name: string;
+  attendance: string;
   created_at: string;
 };
 
@@ -72,6 +139,7 @@ export async function api<T>(
       method: options.method ?? "GET",
       headers: {
         "Content-Type": "application/json",
+        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
         ...(options.adminPassword ? { "x-admin-password": options.adminPassword } : {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,

@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError, Stadium } from "@/lib/api";
+import { useAuth } from "./AuthProvider";
 import { dangerBtn, ErrorBox, Field, inputClass, primaryBtn, subBtn } from "./ui";
 
 export default function StadiumForm({ stadium }: { stadium?: Stadium }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const editing = Boolean(stadium);
   const [values, setValues] = useState({
     name: stadium?.name ?? "",
@@ -70,9 +73,13 @@ export default function StadiumForm({ stadium }: { stadium?: Stadium }) {
       <Field label="주소" error={errors.address} hint="지도 링크는 이 주소로 자동으로 만들어져요.">
         <input className={inputClass} value={values.address} onChange={set("address")} />
       </Field>
-      <Field label="관리자 비밀번호" hint="경기장을 바꾸려면 관리자 비밀번호가 필요해요.">
-        <input type="password" className={inputClass} value={admin} onChange={(e) => setAdmin(e.target.value)} />
-      </Field>
+      {isAdmin ? (
+        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">관리자 계정으로 로그인했어요. 바로 저장할 수 있어요.</p>
+      ) : (
+        <Field label="관리자 비밀번호" hint="관리자 계정으로 로그인하거나, 관리자 비밀번호를 입력해 주세요.">
+          <input type="password" className={inputClass} value={admin} onChange={(e) => setAdmin(e.target.value)} />
+        </Field>
+      )}
       <div className="flex flex-wrap gap-2 pt-2">
         <button type="submit" disabled={saving} className={primaryBtn}>
           {editing ? "수정 저장" : "등록"}
